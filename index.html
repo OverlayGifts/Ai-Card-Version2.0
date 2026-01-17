@@ -7,12 +7,13 @@
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
     body { margin: 0; font-family: 'Poppins', sans-serif; background: #000; overflow: hidden; }
 
-    /* --- LOADING OVERLAY (Custom) --- */
+    /* --- LOADING OVERLAY --- */
     #custom-loader {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: #000; z-index: 9999; display: flex; flex-direction: column;
@@ -20,18 +21,11 @@
     }
     .loader-spinner {
       border: 4px solid #333; border-top: 4px solid #d4af37; border-radius: 50%;
-      width: 40px; height: 40px; animation: spin 1s linear infinite; mb-4;
+      width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    /* --- ERROR MESSAGE --- */
-    #error-msg {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(255, 0, 0, 0.9); color: white; padding: 20px;
-      border-radius: 10px; z-index: 10000; display: none; text-align: center; max-width: 80%;
-    }
 
-    /* --- LIVE TICKER --- */
+    /* --- UI ELEMENTS --- */
     #ticker-bar {
       position: absolute; top: 0; left: 0; width: 100%; height: 30px;
       background: #1a1a1a; color: #d4af37; z-index: 500;
@@ -45,7 +39,7 @@
 
     #logo { position: absolute; top: 50px; left: 16px; width: 80px; z-index: 100; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 
-    /* --- UI CONTROLS --- */
+    /* --- CONTROLS --- */
     #ar-controls {
       position: absolute; bottom: 0; left: 0; width: 100%;
       background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
@@ -53,6 +47,17 @@
       flex-direction: column; gap: 10px; align-items: center;
     }
 
+    /* Buttons */
+    .action-grid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .lux-btn {
+      padding: 8px 12px; font-size: 11px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; transition: 0.3s;
+    }
+    .lux-btn:hover { background: #d4af37; color: #000; border-color: #d4af37; }
+    .lux-btn.primary { background: #d4af37; color: #000; }
+
+    /* Engraving Box */
     .engrave-box {
       display: flex; gap: 5px; background: rgba(255,255,255,0.1); padding: 8px; rounded: 8px; backdrop-filter: blur(5px);
     }
@@ -62,17 +67,7 @@
     }
     .engrave-input:focus { outline: none; border-bottom: 1px solid #d4af37; }
 
-    .action-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-    
-    .lux-btn {
-      padding: 8px 12px; font-size: 11px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 20px; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer;
-      display: flex; align-items: center; gap: 5px; transition: 0.3s;
-    }
-    .lux-btn:hover { background: #d4af37; color: #000; border-color: #d4af37; }
-    .lux-btn.primary { background: #d4af37; color: #000; }
-
-    /* --- MODALS --- */
+    /* --- OVERLAYS --- */
     #ring-sizer-overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); z-index: 600; display: none;
@@ -82,7 +77,7 @@
       width: 200px; height: 200px; border: 4px solid #d4af37; border-radius: 50%;
       box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); transition: 0.1s;
     }
-    
+
     .modal {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: 85%; max-width: 350px; background: white; border-radius: 12px;
@@ -100,21 +95,15 @@
 
   <div id="custom-loader">
     <div class="loader-spinner"></div>
-    <p style="color: #d4af37; margin-top: 20px; font-size: 14px;">INITIALIZING LUXURY AR...</p>
-    <p style="color: #666; font-size: 10px;">Please allow camera access</p>
-  </div>
-
-  <div id="error-msg">
-    <h3>⚠️ Error</h3>
-    <p id="error-text">Something went wrong.</p>
-    <button onclick="location.reload()" style="padding: 5px 10px; margin-top: 10px;">Retry</button>
+    <p style="color: #d4af37; font-size: 14px; letter-spacing: 1px;">INITIALIZING LUXURY AR...</p>
+    <p style="color: #888; font-size: 10px; margin-top: 5px;">Please Allow Camera Access</p>
   </div>
 
   <div id="ticker-bar">
     <div class="ticker-content" id="goldRateTicker">Loading Market Rates...</div>
   </div>
 
-  <img src="logo.png" id="logo" alt="JEWELS-AI">
+  <img src="logo.png" id="logo" alt="JEWELS-AI" onerror="this.style.display='none'">
 
   <div id="ring-sizer-overlay">
     <h3 style="font-family: 'Playfair Display'; margin-bottom: 20px;">Align ring with circle</h3>
@@ -125,120 +114,98 @@
   </div>
 
   <div id="clarityModal" class="modal">
-    <h3>Clarity Comparison</h3>
-    <div style="height: 100px; background: #eee; display: flex; align-items: center; justify-content: center;">
-       Diamond Zoom Demo
+    <h3 style="font-family: 'Playfair Display'">Diamond Clarity</h3>
+    <div style="height: 120px; background: #eee; display: flex; align-items: center; justify-content: center; margin: 10px 0; border: 1px solid #ddd;">
+       <div style="width: 50%; border-right: 1px solid #aaa;">VVS1</div>
+       <div style="width: 50%;">SI2</div>
     </div>
+    <p style="font-size: 11px; color: #666;">Zoom to see inclusion differences.</p>
     <div class="close-modal" onclick="document.getElementById('clarityModal').style.display='none'">Close</div>
   </div>
 
   <div id="certModal" class="modal">
-    <h3 style="color: #d4af37;">Authenticity Verified</h3>
-    <p style="font-size: 12px;">BIS Hallmark | GIA Certified</p>
-    <div style="background: #f8f8f8; padding: 10px; margin: 10px 0; border: 1px dashed #ccc;">ID: #998-XX-JWL</div>
+    <h3 style="color: #d4af37; font-family: 'Playfair Display'">Authenticity Verified</h3>
+    <p style="font-size: 12px; font-weight: bold;">BIS Hallmark | GIA Certified</p>
+    <div style="background: #f9f9f9; padding: 15px; margin: 15px 0; border: 1px dashed #d4af37; font-family: monospace;">ID: #998-XX-JWL</div>
     <div class="close-modal" onclick="document.getElementById('certModal').style.display='none'">Close</div>
   </div>
 
   <div id="ar-controls" aria-hidden="true">
     <div class="engrave-box">
       <span style="color: #d4af37; font-size: 12px;">✎</span>
-      <input type="text" class="engrave-input" id="engravingInput" placeholder="Type Engraving..." maxlength="10">
+      <input type="text" class="engrave-input" id="engravingInput" placeholder="Engrave Name..." maxlength="10">
     </div>
+
     <div class="action-grid">
       <button class="lux-btn primary" id="toggleButton">▶️ Video</button>
-      <button class="lux-btn" onclick="toggleSizer(true)">📏 Ring Sizer</button>
-      <button class="lux-btn" onclick="startVirtualTryOn()">📸 Try-On</button>
-      <button class="lux-btn" onclick="dropHint()">😉 Drop Hint</button>
+      <button class="lux-btn" onclick="toggleSizer(true)">📏 Sizer</button>
+      <button class="lux-btn" onclick="showToast('Starting Front Camera...', 2000)">📸 Try-On</button>
+      <button class="lux-btn" onclick="dropHint()">😉 Hint</button>
       <button class="lux-btn" onclick="document.getElementById('clarityModal').style.display='block'">💎 Clarity</button>
-      <button class="lux-btn" onclick="openMap()">📍 Store</button>
+      <button class="lux-btn" onclick="document.getElementById('certModal').style.display='block'">📜 Cert</button>
     </div>
   </div>
 
   <div id="toast" role="status">Action Disabled</div>
 
   <a-scene 
-    mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; filterMinCF:0.0001; filterBeta: 0.001;" 
+    mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/examples/image-tracking/assets/card-example/card.mind; uiLoading: no;" 
     color-space="sRGB" 
     renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <video id="plan1Video" src="plan1.mp4" playsinline preload="auto" loop crossorigin="anonymous"></video>
-      <img id="iconWeb" src="icon-web.png" />
-      <img id="iconWhatsapp" src="icon-whatsapp.png" />
-      <img id="iconPhone" src="icon-phone.png" />
-      <a-asset-item id="ringModel" src="ring.glb"></a-asset-item>
-      <img id="certIcon" src="cert_icon.png" /> 
+      <video id="plan1Video" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/portfolio/portfolio.mp4" playsinline preload="auto" loop crossorigin="anonymous"></video>
+      
+      <a-asset-item id="ringModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/band-example/raccoon/scene.gltf"></a-asset-item>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false">
-      <a-entity cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-entity>
-    </a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <a-entity id="target1" mindar-image-target="targetIndex: 0">
       
       <a-plane 
-        id="videoDisplay" position="0 0 0" width="1" height="0.59" 
+        id="videoDisplay" position="0 0 0" width="1" height="0.55" 
         material="src: #plan1Video; shader: flat; side: double" class="clickable">
       </a-plane>
 
-      <a-entity position="0 0.3 0.3" rotation="90 0 0" scale="0.2 0.2 0.2" animation="property: rotation; to: 90 360 0; loop: true; dur: 10000; easing: linear">
-        <a-gltf-model src="#ringModel" 
-           onerror="console.log('Model failed to load - check filename')">
-        </a-gltf-model>
+      <a-entity position="0 0.1 0.2" rotation="0 0 0" scale="0.05 0.05 0.05" 
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+        <a-gltf-model src="#ringModel"></a-gltf-model>
         
-        <a-text id="arEngraving" value="" color="black" position="0 0 0.6" align="center" width="4" rotation="-90 0 0"></a-text>
+        <a-text id="arEngraving" value="" color="#d4af37" position="0 2 0" align="center" width="20" side="double"></a-text>
       </a-entity>
 
-      <a-circle 
-        position="0.6 0.4 0.1" radius="0.1" color="white" 
-        material="src: #certIcon; transparent: true; opacity: 0.9"
-        class="clickable" id="btn-cert">
-      </a-circle>
-      <a-text value="Cert." position="0.6 0.25 0.1" align="center" width="2" color="white"></a-text>
-
-      <a-entity position="0 -0.45 0.05"> 
-        <a-image src="#iconWeb" class="clickable" position="-0.35 0 0" scale="0.2 0.2 0.2" id="btn-web"></a-image>
-        <a-image src="#iconWhatsapp" class="clickable" position="0 0 0" scale="0.2 0.2 0.2" id="btn-whatsapp"></a-image>
-        <a-image src="#iconPhone" class="clickable" position="0.35 0 0" scale="0.2 0.2 0.2" id="btn-phone"></a-image>
-      </a-entity>
     </a-entity>
   </a-scene>
 
   <script>
     const sceneEl = document.querySelector('a-scene');
     const loader = document.getElementById('custom-loader');
-    const errorBox = document.getElementById('error-msg');
-    const errorText = document.getElementById('error-text');
-
-    // --- DEBUGGING: Detect AR Events ---
+    
+    // --- HIDE LOADING SCREEN WHEN CAMERA STARTS ---
     sceneEl.addEventListener('arReady', () => {
-      console.log("AR Ready!");
-      loader.style.display = 'none'; // Hide loader when camera starts
-    });
-
-    sceneEl.addEventListener('arError', (event) => {
-      console.log("AR Error:", event);
+      console.log("AR Ready");
       loader.style.display = 'none';
-      errorBox.style.display = 'block';
-      errorText.innerHTML = "Camera or File Error.<br>1. Check 'targets.mind' exists.<br>2. Allow Camera permissions.";
     });
 
-    // --- SETUP VARIABLES ---
-    const videoDisplay = document.querySelector('#videoDisplay');
+    sceneEl.addEventListener('arError', (e) => {
+      console.log("AR Error", e);
+      loader.innerHTML = "<p style='color:red'>CAMERA ERROR<br>Please allow permissions</p>";
+    });
+
+    // --- VARIABLES ---
     const videoEl = document.querySelector('#plan1Video');
-    const controlsContainer = document.querySelector('#ar-controls');
     const toggleButton = document.querySelector('#toggleButton');
     const target = document.querySelector('#target1');
-    const toast = document.querySelector('#toast');
+    const controls = document.querySelector('#ar-controls');
     let isPlaying = false;
 
     // 1. LIVE GOLD RATE
     function updateTicker() {
-      const price24 = "₹7,250"; const price22 = "₹6,850"; const silver = "₹88.50";
       document.getElementById('goldRateTicker').innerHTML = 
-        `LIVE RATES: GOLD 24K: ${price24}/gm  •  GOLD 22K: ${price22}/gm  •  SILVER: ${silver}/gm`;
+        `LIVE RATES: GOLD 24K: ₹7,250/gm  •  GOLD 22K: ₹6,850/gm  •  SILVER: ₹88.50/gm  •  PLATINUM: ₹3,200/gm`;
     }
     updateTicker();
 
@@ -247,7 +214,7 @@
       document.getElementById('arEngraving').setAttribute('value', e.target.value);
     });
 
-    // 5. RING SIZER LOGIC
+    // 5. RING SIZER
     const sizerOverlay = document.getElementById('ring-sizer-overlay');
     const sizerRange = document.getElementById('sizerRange');
     const sizerCircle = document.getElementById('sizerCircle');
@@ -263,46 +230,37 @@
 
     // 6. DROP A HINT
     window.dropHint = function() {
-      const msg = "Hey! I found this stunning ring on Jewels-AI...";
-      window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.location.href = `https://wa.me/?text=${encodeURIComponent("Check out this ring on Jewels-AI!")}`;
     };
-
-    window.startVirtualTryOn = function() { showToast("Launching Front Camera Try-On...", 2000); };
-    window.openMap = function() { window.open('https://maps.google.com', '_blank'); };
-    document.getElementById('btn-cert').addEventListener('click', () => {
-      document.getElementById('certModal').style.display = 'block';
-    });
 
     // --- MINDAR LOGIC ---
     target.addEventListener('targetFound', () => {
-      controlsContainer.style.display = 'flex';
-      controlsContainer.setAttribute('aria-hidden', 'false');
+      controls.style.display = 'flex';
+      // Auto-play video on find (optional)
+      // videoEl.play();
     });
 
     target.addEventListener('targetLost', () => {
-      controlsContainer.style.display = 'none';
-      controlsContainer.setAttribute('aria-hidden', 'true');
-      if (!videoEl.paused) videoEl.pause();
+      controls.style.display = 'none';
+      videoEl.pause();
       isPlaying = false;
       toggleButton.innerHTML = "▶️ Video";
     });
 
-    toggleButton.addEventListener('click', async () => {
+    toggleButton.addEventListener('click', () => {
       if (!isPlaying) {
-        videoDisplay.setAttribute('material', 'src', '#plan1Video');
-        try { await videoEl.play(); isPlaying = true; toggleButton.innerHTML = "⏸ Pause"; } 
-        catch (err) { showToast('Tap screen to allow video', 2000); }
+        videoEl.play();
+        isPlaying = true;
+        toggleButton.innerHTML = "⏸ Pause";
       } else {
-        videoEl.pause(); isPlaying = false; toggleButton.innerHTML = "▶️ Video";
+        videoEl.pause();
+        isPlaying = false;
+        toggleButton.innerHTML = "▶️ Video";
       }
     });
 
-    const SOCIAL = { web: 'https://google.com', wa: 'https://wa.me/919999999999', ph: 'tel:+919999999999' };
-    document.querySelector('#btn-web').addEventListener('click', () => window.location.href = SOCIAL.web);
-    document.querySelector('#btn-whatsapp').addEventListener('click', () => window.location.href = SOCIAL.wa);
-    document.querySelector('#btn-phone').addEventListener('click', () => window.location.href = SOCIAL.ph);
-
     function showToast(msg, t = 1200) {
+      const toast = document.getElementById('toast');
       toast.textContent = msg; toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, t);
     }
